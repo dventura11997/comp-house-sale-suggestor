@@ -1,7 +1,8 @@
 # Startup: 
-# cd "C:\Users\danie\OneDrive\Work\Career\Coding\Folio\Comparable House Sales Suggestor"
+# cd "C:\Users\danie\OneDrive\Work\Career\Coding\Folio\Comparable House Sales Suggestor\comp-house-sale-suggestor"
 # env/scripts/activate
 # streamlit run app.py
+
 
 import streamlit as st
 from pathlib import Path
@@ -38,16 +39,16 @@ input_url = st.text_input("Copy in the URL:")
 try:
     # Button to trigger the function once the URL is entered
     if st.button("View Comparable Sales and Property History"):
-        final_url = functions.constructUrl(input_url)
-        df_cs, price_avg = functions.compSold(final_url)
+        # final_url = functions.constructUrl(input_url)
+        # df_cs, price_avg = functions.compSold(final_url)
         df_ph = functions.propHistory(input_url)
 
-        if df_cs is None or len(df_cs) == 0:
-            st.info("No rows to show.")
-        else:
-            st.metric("Average Price", f"${price_avg:,.0f}")
-            st.dataframe(df_cs, use_container_width=True, hide_index=True)
-            st.link_button("Browse Sales on Domain", final_url)
+        # if df_cs is None or len(df_cs) == 0:
+        #     st.info("No rows to show.")
+        # else:
+        #     st.metric("Average Price", f"${price_avg:,.0f}")
+        #     st.dataframe(df_cs, use_container_width=True, hide_index=True)
+        #     st.link_button("Browse Sales on Domain", final_url)
         if df_ph is None or len(df_ph) == 0:
             st.info("No rows to show.")
         else:

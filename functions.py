@@ -28,12 +28,18 @@ def extractElements(input_url):
 def getSoup(input_url):
     try:
         headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                       "AppleWebKit/537.36 (KHTML, like Gecko) "
+                       "Chrome/120.0.0.0 Safari/537.36"),
+        "Accept-Language": "en-AU,en;q=0.9",
     }
         response = requests.get(input_url, headers=headers, timeout=10)
         print(f"Status code: {response.status_code}")
         soup = BeautifulSoup(response.content, 'html.parser')
-
+        if response.status_code != 200:
+            raise RuntimeError(f"HTTP {response.status_code} from target (likely bot protection).")
+        if "KPSDK" in r.text or "Access Denied" in r.text:
+            raise RuntimeError("Blocked by bot protection.")
         return soup
     except requests.exceptions.Timeout:
         print("Request timed out")

@@ -1,0 +1,21 @@
+Idea:
+You put in a URL for a property you like and you ask it to find comparable sold properties or it conducts an REA search
+
+Example URLs:
+
+Listed Property:
+https://www.realestate.com.au/property-unit-vic-ashburton-148881008?campaignType=external&campaignChannel=other&campaignSource=share_link&campaignName=share_link
+
+Search Sold:
+https://www.realestate.com.au/sold/property-house-townhouse-with-2-bedrooms-between-0-850000-in-hawthorn,+vic+3122;+camberwell,+vic+3124;+glen+iris,+vic+3146;+abbotsford,+vic+3067;+carlton,+vic+3053;+richmond,+vic+3121;+south+yarra,+vic+3141;+malvern+east,+vic+3145/list-1?numBaths=1&activeSort=solddate&sourcePage=rea:homepage&sourceElement=suburb-select:recent%20searches%20tiles
+https://www.realestate.com.au/sold/property-house-with-2-bedrooms-in-richmond,+vic+3121/list-1?maxBeds=2&activeSort=relevance&sourcePage=rea:homepage&sourceElement=suburb-select:recent%20searches%20tiles
+
+Things needed:
+Property Type: In Listing URL
+Bedrooms: Needs to be scraped
+Suburb: In Listing URL
+State: In Listing URL
+Postcode: Needs to be scraped/Looked Up
+maxBeds: Needs to be scraped
+Price: Needs to be scraped
+numBaths: Needs to be scraped

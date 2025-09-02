@@ -52,7 +52,7 @@ try:
             st.info("No rows to show.")
         else:
             st.dataframe(df_ph, use_container_width=True, hide_index=True)
-except RuntimeError as e:
+except Exception as e:
     st.error(str(e))
     st.stop()
 

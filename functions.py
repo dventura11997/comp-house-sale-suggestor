@@ -85,14 +85,14 @@ def findElements(soup):
 
     return price, beds, bath, parking, houseType
 
-# def constructUrl(input_url, ssp, beds, bath, parking, houseType):
-#     base_url = "https://www.domain.com.au/sold-listings/"
-#     #ssp = extractElements(input_url)
-#     #price, beds, bath, parking, houseType = findElements(input_url)
-#     final_url = base_url + ssp + "/" + houseType + "/" + beds + "-bedrooms/?bathrooms=" + bath + "&excludepricewithheld=1&carspaces=" + parking
-#     print(final_url)
+def constructUrl(ssp, beds, bath, parking, houseType):
+    base_url = "https://www.domain.com.au/sold-listings/"
+    #ssp = extractElements(input_url)
+    #price, beds, bath, parking, houseType = findElements(input_url)
+    final_url = base_url + ssp + "/" + houseType + "/" + beds + "-bedrooms/?bathrooms=" + bath + "&excludepricewithheld=1&carspaces=" + parking
+    print(final_url)
 
-#     return final_url
+    return final_url
 
 
 # def compSold(final_url):

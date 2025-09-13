@@ -48,14 +48,16 @@ try:
             st.write(f"Price: {price}, Beds: {beds}, Bath: {bath}, Parks: {parking}, House Type: {houseType}")
         except Exception as e:
             st.error(f"Error extracting beds, bath, parking and house type from original webpage: {e}")
-        # try:
-        #     ssp = functions.extractElements(input_url)
-        # except Exception as e:
-        #     st.error("Error extracting suburb state and postcode from input url")
-        # try:
-        #     final_url = functions.constructUrl(input_url, ssp)
-        # except Exception as e:
-        #     st.error("Error constructing URL for comparable sales")
+        try:
+            ssp = functions.extractElements(input_url)
+            st.write(f"Suburb, state and postcode text extracted from URL: {ssp}")
+        except Exception as e:
+            st.error(f"Error extracting suburb state and postcode from input url: {e}")
+        try:
+            final_url = functions.constructUrl(ssp, beds, bath, parking, houseType)
+            st.write(f"Final URL constructed: {final_url}")
+        except Exception as e:
+            st.error("Error constructing URL for comparable sales")
 except Exception as e:
     st.error(str(e))
     st.stop()

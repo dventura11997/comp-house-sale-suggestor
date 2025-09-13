@@ -2,15 +2,9 @@ import re
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-import time
+from scrapfly import ScrapeConfig, ScrapflyClient
 
-# https://discuss.streamlit.io/t/selenium-web-scraping-on-streamlit-cloud/21820/6
-
-#url = "https://www.domain.com.au/13-700-riversdale-road-camberwell-vic-3124-2020196506"
+#url = "https://www.domain.com.au/11-raymond-street-ashwood-vic-3147-2020201068"
 
 # URL to scrape
 def get_url(input_url):
@@ -28,13 +22,20 @@ def extractElements(input_url):
 
 def getSoup(input_url):
     try:
-        headers = {
-        "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                       "AppleWebKit/537.36 (KHTML, like Gecko) "
-                       "Chrome/120.0.0.0 Safari/537.36"),
-        "Accept-Language": "en-AU,en;q=0.9",
-    }
-        response = requests.get(input_url, headers=headers, timeout=10)
+    #     headers = {
+    #     "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    #                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    #                    "Chrome/120.0.0.0 Safari/537.36"),
+    #     "Accept-Language": "en-AU,en;q=0.9",
+    # }
+    #     response = requests.get(input_url, headers=headers, timeout=10)
+        scrapfly_client = ScrapflyClient("scp-live-bb61fd3f185c4c6dba068babfcee3079")
+        response = scrapfly_client.scrape(ScrapeConfig(
+            input_url,
+            country="AU",
+            asp=True,
+            render_js=True
+        ))
         print(f"Status code: {response.status_code}")
         soup = BeautifulSoup(response.content, 'html.parser')
         if response.status_code != 200:
@@ -55,7 +56,6 @@ def findElements(input_url):
         # price
         price_element = soup.find('div', {'data-testid': 'listing-details__summary-title'}).find('span')
         price = price_element.text
-        #print("price:", price)
     except Exception as e:
         print("Error finding price:", e)
     
@@ -63,7 +63,6 @@ def findElements(input_url):
         # beds
         beds_container = soup.find('span', string='Beds').parent
         beds = beds_container.get_text().strip().split()[0]
-        #print("beds:", beds)
     except Exception as e:
         print("Error finding beds:", e)
 
@@ -71,7 +70,6 @@ def findElements(input_url):
         # bath
         bath_container = soup.find('span', string='Bath').parent
         bath = bath_container.get_text().strip().split()[0]
-        #print("bath:", bath)
     except Exception as e:
         print("Error finding price element:", e)
     
@@ -79,7 +77,6 @@ def findElements(input_url):
         # bath
         parking_container = soup.find('span', string='Parking').parent
         parking = parking_container.get_text().strip().split()[0]
-        #print("parking:", parking)
     except Exception as e:
         print("Error finding parking:", e)
     
@@ -88,7 +85,6 @@ def findElements(input_url):
         houseType_element = soup.find('div', {'data-testid': 'listing-summary-property-type'}).find('span')
         houseType = houseType_element.get_text().strip().split()[0]
         if houseType == "Townhouse": houseType = "town-house"
-        print("House Type:", houseType)
     except Exception as e:
         print("Error finding house type:", e)
 
@@ -98,9 +94,7 @@ def findElements(input_url):
 def constructUrl(input_url):
     base_url = "https://www.domain.com.au/sold-listings/"
     ssp = extractElements(input_url)
-    #print(ssp)
     price, beds, bath, parking, houseType = findElements(input_url)
-    #print(price, beds, bath, parking, houseType)
     final_url = base_url + ssp + "/" + houseType + "/" + beds + "-bedrooms/?bathrooms=" + bath + "&excludepricewithheld=1&carspaces=" + parking
     print(final_url)
 
@@ -131,67 +125,38 @@ def compSold(final_url):
 
 
 def propHistory(input_url):
-    ph_url = re.sub(r'-(\d+)$', '', input_url)           # remove the trailing -digits
+    ph_url = re.sub(r'-(\d+)$', '', input_url)           
     ph_url = ph_url.replace(".com.au/", ".com.au/property-profile/")
-    print(ph_url)
 
+    soup = getSoup(ph_url)
+    
+    items = []
+    list_element = soup.find('ul', {'class': 'css-m3i618'})
 
-    # Chromium options for Streamlit Cloud
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--disable-features=VizDisplayCompositor")
-    chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    chrome_options.add_experimental_option('useAutomationExtension', False)
+    if list_element:
+        for li in list_element.find_all("li", {"class": "css-16ezjtx"}):
+            try:
+                category = li.find('div', {'data-testid': 'fe-co-property-timeline-card-category'}).get_text(strip=True)
+                price = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).get_text(strip=True)
+                period = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).find_next('span').get_text(strip=True)
+                month = li.find('div', {'class': 'css-vajoca'}).get_text(strip=True).upper()
+                year = li.find('div', {'class': 'css-1qi20sy'}).get_text(strip=True)
 
-    try:
-
-        driver = webdriver.Chrome(options=chrome_options)
-        driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-        driver.get(ph_url)
-        time.sleep(1)
-
-        try:
-            button = driver.find_element(By.XPATH, "//button[text()='View more results']")
-            button.click()
-            time.sleep(2)
-        except Exception as e:
-            print(f"Button click failed: {e}")
-        
-        soup = BeautifulSoup(driver.page_source, "html.parser")
-        driver.quit()
-
-        items = []
-        list_element = soup.find('ul', {'class': 'css-m3i618'})
-
-        if list_element:
-            for li in list_element.find_all("li", {"class": "css-16ezjtx"}):
-                try:
-                    category = li.find('div', {'data-testid': 'fe-co-property-timeline-card-category'}).get_text(strip=True)
-                    price = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).get_text(strip=True)
-                    period = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).find_next('span').get_text(strip=True)
-                    month = li.find('div', {'class': 'css-vajoca'}).get_text(strip=True).upper()
-                    year = li.find('div', {'class': 'css-1qi20sy'}).get_text(strip=True)
-
-                    items.append({
-                        "category": category,
-                        "price": price,
-                        "period": period,
-                        "month": month,
-                        "year": year
-                    })
-                except Exception as e:
-                    print(f"Error parsing item: {e}")
+                items.append({
+                    "category": category,
+                    "price": price,
+                    "period": period,
+                    "month": month,
+                    "year": year
+                })
+            except Exception as e:
+                print(f"Error parsing item: {e}")
         df = pd.DataFrame(items)
-        return df
-    except Exception as e:
-        print(f"Chromium driver error: {e}")
+    else:
         return pd.DataFrame()
 
+    return df
+    
 # def propHistory(input_url):
 #     ph_url = re.sub(r'-(\d+)$', '', input_url)           # remove the trailing -digits
 #     ph_url = ph_url.replace(".com.au/", ".com.au/property-profile/")

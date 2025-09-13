@@ -31,11 +31,12 @@ def getSoup(input_url):
         ))
         print(f"Status code: {response.status_code}")
         soup = BeautifulSoup(response.content, 'html.parser')
+        response_code = response.status_code
         if response.status_code != 200:
             raise RuntimeError(f"HTTP {response.status_code} from target (likely bot protection).")
         if "KPSDK" in response.content or "Access Denied" in response.content:
             raise RuntimeError("Blocked by bot protection.")
-        return soup
+        return soup, response_code
     except requests.exceptions.Timeout:
         print("Request timed out")
     except requests.exceptions.RequestException as e:

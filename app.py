@@ -40,19 +40,28 @@ try:
     if st.button("View Comparable Sales and Property History"):
         with st.spinner("Loading..."):
             final_url = functions.constructUrl(input_url)
-            df_cs, price_avg = functions.compSold(final_url)
-            df_ph = functions.propHistory(input_url)
+            if not final_url:
+                st.error("Error constructing URL for comparable sales")
+            else:
+                st.write(f"Transformed URL for comparable sales: {final_url}")
+
+            try:
+                df_cs, price_avg = functions.compSold(final_url)
+            except Exception as e:
+                st.error(f"Error with compSold function: {e}")
+                st.stop()
+            #df_ph = functions.propHistory(input_url)
 
             if df_cs is None or len(df_cs) == 0:
                 st.info("No rows to show.")
             else:
                 st.metric("Average Price", f"${price_avg:,.0f}")
                 st.dataframe(df_cs, use_container_width=True, hide_index=True)
-                st.link_button("Browse Sales on Domain", final_url)
-            if df_ph is None or len(df_ph) == 0:
-                st.info("No rows to show.")
-            else:
-                st.dataframe(df_ph, use_container_width=True, hide_index=True)
+                #st.link_button("Browse Sales on Domain", final_url)
+            #if df_ph is None or len(df_ph) == 0:
+                #st.info("No rows to show.")
+            #else:
+                #st.dataframe(df_ph, use_container_width=True, hide_index=True)
 except Exception as e:
     st.error(str(e))
     st.stop()

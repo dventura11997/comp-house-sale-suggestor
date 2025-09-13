@@ -40,22 +40,22 @@ try:
     if st.button("View Comparable Sales and Property History"):
         try:
             soup, response_code = functions.getSoup(input_url)
-            st.write(f"API Response code: {response_code}")
+            #st.write(f"API Response code: {response_code}")
         except Exception as e:
             st.error("Error getting html from original webpage")
         try:
             price, beds, bath, parking, houseType = functions.findElements(soup)
-            st.write(f"Price: {price}, Beds: {beds}, Bath: {bath}, Parks: {parking}, House Type: {houseType}")
+            #st.write(f"Price: {price}, Beds: {beds}, Bath: {bath}, Parks: {parking}, House Type: {houseType}")
         except Exception as e:
             st.error(f"Error extracting beds, bath, parking and house type from original webpage: {e}")
         try:
             ssp = functions.extractElements(input_url)
-            st.write(f"Suburb, state and postcode text extracted from URL: {ssp}")
+            #st.write(f"Suburb, state and postcode text extracted from URL: {ssp}")
         except Exception as e:
             st.error(f"Error extracting suburb state and postcode from input url: {e}")
         try:
             final_url = functions.constructUrl(ssp, beds, bath, parking, houseType)
-            st.write(f"Final URL constructed: {final_url}")
+            #st.write(f"Final URL constructed: {final_url}")
         except Exception as e:
             st.error("Error constructing URL for comparable sales")
         try:
@@ -65,16 +65,21 @@ try:
             else:
                 df_cs, price_avg = functions.compSold(soup)
                 if df_cs is None or len(df_cs) == 0:
-                    st.info("No rows to show.")
+                    st.info("No comparable sales to show.")
                 else:
                     st.metric("Average Price", f"${price_avg:,.0f}")
+                    st.subheader("Comparable Sales")
                     st.dataframe(df_cs, use_container_width=True, hide_index=True)
                     st.link_button("Browse Sales on Domain", final_url)
         except Exception as e:
             st.error(f"Error getting data from final URL {e}")
         try:
             df_ph = functions.propHistory(input_url)
-            st.dataframe(df_ph, use_container_width=True, hide_index=True)
+            if df_ph is None or len(df_ph) == 0:
+                st.info("No property history to show.")
+            else:
+                st.subheader("Property History")
+                st.dataframe(df_ph, use_container_width=True, hide_index=True)
         except Exception as e:
             st.error(f"Error getting property history data using input URL: {e}")
 
@@ -82,33 +87,6 @@ except Exception as e:
     st.error(str(e))
     st.stop()
 
-#https://www.domain.com.au/sold-listings/ashwood-vic-3147/House/3-bedrooms/?bathrooms=1&excludepricewithheld=1&carspaces=7
-#https://www.domain.com.au/sold-listings/ashwood-vic-3147/house/3-bedrooms/?bathrooms=1&excludepricewithheld=1&carspaces=5-any
-#             if not final_url:
-#                 st.error("Error constructing URL for comparable sales")
-#             else:
-#                 st.write(f"Transformed URL for comparable sales: {final_url}")
-
-#             try:
-#                 df_cs, price_avg = functions.compSold(final_url)
-#             except Exception as e:
-#                 st.error(f"Error with compSold function: {e}")
-#                 st.stop()
-#             #df_ph = functions.propHistory(input_url)
-
-#             if df_cs is None or len(df_cs) == 0:
-#                 st.info("No rows to show.")
-#             else:
-#                 st.metric("Average Price", f"${price_avg:,.0f}")
-#                 st.dataframe(df_cs, use_container_width=True, hide_index=True)
-#                 #st.link_button("Browse Sales on Domain", final_url)
-#             #if df_ph is None or len(df_ph) == 0:
-#                 #st.info("No rows to show.")
-#             #else:
-#                 #st.dataframe(df_ph, use_container_width=True, hide_index=True)
-# except Exception as e:
-#     st.error(str(e))
-#     st.stop()
 
 
 

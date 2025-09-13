@@ -29,35 +29,41 @@ def getSoup(input_url):
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
 
-def compSold(soup):
-    #soup = getSoup(final_url)
-    prices = [p.get_text().strip() for p in soup.find_all('p', {'data-testid': 'listing-card-price'})]
-    addresses = [span.get_text().strip() for span in soup.find_all('span', {'data-testid': 'address-line1'})]
-    sold_info = [span.get_text().strip() for span in soup.find_all('span', class_='css-1nj9ymt')]
+def propHistory(input_url):
+    ph_url = re.sub(r'-(\d+)$', '', input_url)           
+    ph_url = ph_url.replace(".com.au/", ".com.au/property-profile/")
+    print(ph_url)
+
+    soup, response_code = getSoup(ph_url)
     
-    comp_data = []
-    for price, address, sold in zip(prices, addresses, sold_info):  
-        sale_method = re.split(r'\d', sold)[0].strip()
-        sold_date = re.search(r'\d{1,2} \w+ \d{4}', sold)
-        comp_data.append({
-            "price": price,
-            "address": address,
-            "sold_info": sold,
-            "sale_method": sale_method,
-            "sold_date": sold_date.group() if sold_date else None
-        })
+    items = []
+    list_element = soup.find('ul', {'class': 'css-m3i618'})
 
-    df = pd.DataFrame(comp_data)
+    if list_element:
+        for li in list_element.find_all("li", {"class": "css-16ezjtx"}):
+            try:
+                category = li.find('div', {'data-testid': 'fe-co-property-timeline-card-category'}).get_text(strip=True)
+                price = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).get_text(strip=True)
+                period = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).find_next('span').get_text(strip=True)
+                month = li.find('div', {'class': 'css-vajoca'}).get_text(strip=True).upper()
+                year = li.find('div', {'class': 'css-1qi20sy'}).get_text(strip=True)
 
-    # Calc Avg Price
-    price_avg = pd.to_numeric(df['price'].replace('[\$,]', '', regex=True), errors='coerce').mean()
-    df.drop(['sold_info'], axis=1, inplace=True)
+                items.append({
+                    "category": category,
+                    "price": price,
+                    "period": period,
+                    "month": month,
+                    "year": year
+                })
+            except Exception as e:
+                print(f"Error parsing item: {e}")
+        df = pd.DataFrame(items)
+    else:
+        return pd.DataFrame()
 
-    return df, price_avg
+    return df
 
-final_url = "https://www.domain.com.au/sold-listings/ashwood-vic-3147/house/3-bedrooms/?bathrooms=1&excludepricewithheld=1&carspaces=5-any"
-soup, response_code = getSoup(final_url) 
-df, price_avg = compSold(soup)
+input_url = "https://www.domain.com.au/11-raymond-street-ashwood-vic-3147-2020201068" 
+df = propHistory(input_url)
 
 print(df)
-print(price_avg)

@@ -125,38 +125,38 @@ def compSold(soup):
     return df, price_avg
 
 
-# def propHistory(input_url):
-#     ph_url = re.sub(r'-(\d+)$', '', input_url)           
-#     ph_url = ph_url.replace(".com.au/", ".com.au/property-profile/")
+def propHistory(input_url):
+    ph_url = re.sub(r'-(\d+)$', '', input_url)           
+    ph_url = ph_url.replace(".com.au/", ".com.au/property-profile/")
 
-#     soup = getSoup(ph_url)
+    soup, response_code = getSoup(ph_url)
     
-#     items = []
-#     list_element = soup.find('ul', {'class': 'css-m3i618'})
+    items = []
+    list_element = soup.find('ul', {'class': 'css-m3i618'})
 
-#     if list_element:
-#         for li in list_element.find_all("li", {"class": "css-16ezjtx"}):
-#             try:
-#                 category = li.find('div', {'data-testid': 'fe-co-property-timeline-card-category'}).get_text(strip=True)
-#                 price = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).get_text(strip=True)
-#                 period = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).find_next('span').get_text(strip=True)
-#                 month = li.find('div', {'class': 'css-vajoca'}).get_text(strip=True).upper()
-#                 year = li.find('div', {'class': 'css-1qi20sy'}).get_text(strip=True)
+    if list_element:
+        for li in list_element.find_all("li", {"class": "css-16ezjtx"}):
+            try:
+                category = li.find('div', {'data-testid': 'fe-co-property-timeline-card-category'}).get_text(strip=True)
+                price = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).get_text(strip=True)
+                period = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).find_next('span').get_text(strip=True)
+                month = li.find('div', {'class': 'css-vajoca'}).get_text(strip=True).upper()
+                year = li.find('div', {'class': 'css-1qi20sy'}).get_text(strip=True)
 
-#                 items.append({
-#                     "category": category,
-#                     "price": price,
-#                     "period": period,
-#                     "month": month,
-#                     "year": year
-#                 })
-#             except Exception as e:
-#                 print(f"Error parsing item: {e}")
-#         df = pd.DataFrame(items)
-#     else:
-#         return pd.DataFrame()
+                items.append({
+                    "category": category,
+                    "price": price,
+                    "period": period,
+                    "month": month,
+                    "year": year
+                })
+            except Exception as e:
+                print(f"Error parsing item: {e}")
+        df = pd.DataFrame(items)
+    else:
+        return pd.DataFrame()
 
-#     return df
+    return df
     
 
 

@@ -72,6 +72,11 @@ try:
                     st.link_button("Browse Sales on Domain", final_url)
         except Exception as e:
             st.error(f"Error getting data from final URL {e}")
+        try:
+            df_ph = functions.propHistory(input_url)
+            st.dataframe(df_ph, use_container_width=True, hide_index=True)
+        except Exception as e:
+            st.error(f"Error getting property history data using input URL: {e}")
 
 except Exception as e:
     st.error(str(e))
@@ -105,41 +110,5 @@ except Exception as e:
 #     st.error(str(e))
 #     st.stop()
 
-# import streamlit as st
-# from scrapfly import ScrapeConfig, ScrapflyClient
-# from bs4 import BeautifulSoup
 
-# st.title("ScrapFly Test")
-
-# url = st.text_input("URL:", "https://www.domain.com.au/11-raymond-street-ashwood-vic-3147-2020201068")
-# api_key = st.text_input("ScrapFly API Key:", "scp-live-bb61fd3f185c4c6dba068babfcee3079", type="password")
-
-# if st.button("Test Scrape"):
-#     try:
-#         client = ScrapflyClient(api_key)
-#         result = client.scrape(ScrapeConfig(
-#             url,
-#             country="AU",
-#             asp=True,
-#             render_js=True
-#         ))
-        
-#         soup = BeautifulSoup(result.content, 'html.parser')
-#         soup_text = str(soup)
-        
-#         # Show first 500 chars
-#         st.success("✅ Scrape successful!")
-#         st.text_area("First 500 characters:", soup_text[:500])
-#         st.metric("Total HTML length:", len(soup_text))
-        
-#         # Download button
-#         st.download_button(
-#             "Download HTML",
-#             soup_text,
-#             file_name="scraped_content.html",
-#             mime="text/html"
-#         )
-        
-#     except Exception as e:
-#         st.error(f"❌ Error: {e}")
 

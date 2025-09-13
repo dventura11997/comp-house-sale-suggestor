@@ -38,50 +38,51 @@ input_url = st.text_input("Copy in the URL:")
 try:
     # Button to trigger the function once the URL is entered
     if st.button("View Comparable Sales and Property History"):
-        try:
-            soup, response_code = functions.getSoup(input_url)
-            #st.write(f"API Response code: {response_code}")
-        except Exception as e:
-            st.error("Error getting html from original webpage")
-        try:
-            price, beds, bath, parking, houseType = functions.findElements(soup)
-            #st.write(f"Price: {price}, Beds: {beds}, Bath: {bath}, Parks: {parking}, House Type: {houseType}")
-        except Exception as e:
-            st.error(f"Error extracting beds, bath, parking and house type from original webpage: {e}")
-        try:
-            ssp = functions.extractElements(input_url)
-            #st.write(f"Suburb, state and postcode text extracted from URL: {ssp}")
-        except Exception as e:
-            st.error(f"Error extracting suburb state and postcode from input url: {e}")
-        try:
-            final_url = functions.constructUrl(ssp, beds, bath, parking, houseType)
-            #st.write(f"Final URL constructed: {final_url}")
-        except Exception as e:
-            st.error("Error constructing URL for comparable sales")
-        try:
-            soup, response_code = functions.getSoup(final_url)
-            if not soup:
-                st.error(f"Failed to retrieve soup, response code: {response_code}")
-            else:
-                df_cs, price_avg = functions.compSold(soup)
-                if df_cs is None or len(df_cs) == 0:
-                    st.info("No comparable sales to show.")
+        with st.spinner("Processing (this could take up to 30 seconds)..."):
+            try:
+                soup, response_code = functions.getSoup(input_url)
+                st.write(f"API Response code: {response_code}")
+            except Exception as e:
+                st.error("Error getting html from original webpage")
+            try:
+                price, beds, bath, parking, houseType = functions.findElements(soup)
+                st.write(f"Price: {price}, Beds: {beds}, Bath: {bath}, Parks: {parking}, House Type: {houseType}")
+            except Exception as e:
+                st.error(f"Error extracting beds, bath, parking and house type from original webpage: {e}")
+            try:
+                ssp = functions.extractElements(input_url)
+                st.write(f"Suburb, state and postcode text extracted from URL: {ssp}")
+            except Exception as e:
+                st.error(f"Error extracting suburb state and postcode from input url: {e}")
+            try:
+                final_url = functions.constructUrl(ssp, beds, bath, parking, houseType)
+                st.write(f"Final URL constructed: {final_url}")
+            except Exception as e:
+                st.error("Error constructing URL for comparable sales")
+            try:
+                soup, response_code = functions.getSoup(final_url)
+                if not soup:
+                    st.error(f"Failed to retrieve soup, response code: {response_code}")
                 else:
-                    st.metric("Average Price", f"${price_avg:,.0f}")
-                    st.subheader("Comparable Sales")
-                    st.dataframe(df_cs, use_container_width=True, hide_index=True)
-                    st.link_button("Browse Sales on Domain", final_url)
-        except Exception as e:
-            st.error(f"Error getting data from final URL {e}")
-        try:
-            df_ph = functions.propHistory(input_url)
-            if df_ph is None or len(df_ph) == 0:
-                st.info("No property history to show.")
-            else:
-                st.subheader("Property History")
-                st.dataframe(df_ph, use_container_width=True, hide_index=True)
-        except Exception as e:
-            st.error(f"Error getting property history data using input URL: {e}")
+                    df_cs, price_avg = functions.compSold(soup)
+                    if df_cs is None or len(df_cs) == 0:
+                        st.info("No comparable sales to show.")
+                    else:
+                        st.metric("Average Price", f"${price_avg:,.0f}")
+                        st.subheader("Comparable Sales")
+                        st.dataframe(df_cs, use_container_width=True, hide_index=True)
+                        st.link_button("Browse Sales on Domain", final_url)
+            except Exception as e:
+                st.error(f"Error getting data from final URL {e}")
+            try:
+                df_ph = functions.propHistory(input_url)
+                if df_ph is None or len(df_ph) == 0:
+                    st.info("No property history to show.")
+                else:
+                    st.subheader("Property History")
+                    st.dataframe(df_ph, use_container_width=True, hide_index=True)
+            except Exception as e:
+                st.error(f"Error getting property history data using input URL: {e}")
 
 except Exception as e:
     st.error(str(e))

@@ -58,31 +58,40 @@
 #     st.stop()
 
 import streamlit as st
-import functions as tcf
+from scrapfly import ScrapeConfig, ScrapflyClient
+from bs4 import BeautifulSoup
 
-st.set_page_config(page_title="Chromium Test App", layout="wide")
+st.title("ScrapFly Test")
 
-st.title("Chromium WebDriver Test")
-st.write("Testing Chromium implementation on Streamlit Cloud")
+url = st.text_input("URL:", "https://www.domain.com.au/11-raymond-street-ashwood-vic-3147-2020201068")
+api_key = st.text_input("ScrapFly API Key:", "scp-live-bb61fd3f185c4c6dba068babfcee3079", type="password")
 
-# Test URL input
-input_url = st.text_input("Enter Domain URL:", 
-                         value="https://www.domain.com.au/11-raymond-street-ashwood-vic-3147-2020201068")
-
-if st.button("Test Chromium WebDriver"):
-    with st.spinner("Testing Chromium driver..."):
-        try:
-            df = tcf.propHistory(input_url)
-            
-            if df.empty:
-                st.error("No data returned - check console logs")
-            else:
-                st.success(f"Success! Retrieved {len(df)} records")
-                st.dataframe(df, use_container_width=True, hide_index=True)
-                
-        except Exception as e:
-            st.error(f"Test failed: {str(e)}")
-
-st.markdown("---")
-st.markdown("**Note:** This tests the Chromium WebDriver approach for Streamlit Cloud deployment.")
+if st.button("Test Scrape"):
+    try:
+        client = ScrapflyClient(api_key)
+        result = client.scrape(ScrapeConfig(
+            url,
+            country="AU",
+            asp=True,
+            render_js=True
+        ))
+        
+        soup = BeautifulSoup(result.content, 'html.parser')
+        soup_text = str(soup)
+        
+        # Show first 500 chars
+        st.success("✅ Scrape successful!")
+        st.text_area("First 500 characters:", soup_text[:500])
+        st.metric("Total HTML length:", len(soup_text))
+        
+        # Download button
+        st.download_button(
+            "Download HTML",
+            soup_text,
+            file_name="scraped_content.html",
+            mime="text/html"
+        )
+        
+    except Exception as e:
+        st.error(f"❌ Error: {e}")
 

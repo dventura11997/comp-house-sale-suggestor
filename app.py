@@ -44,10 +44,10 @@ try:
         except Exception as e:
             st.error("Error getting html from original webpage")
         try:
-            beds, bath, parking, houseType = functions.findElements(soup)
-            st.write(f"Beds: {beds}, Bath: {bath}, Parks: {parking}, House Type: {houseType}")
+            price, beds, bath, parking, houseType = functions.findElements(soup)
+            st.write(f"Price: {price}, Beds: {beds}, Bath: {bath}, Parks: {parking}, House Type: {houseType}")
         except Exception as e:
-            st.error("Error extracting beds, bath, parking and house type from original webpage")
+            st.error(f"Error extracting beds, bath, parking and house type from original webpage: {e}")
         # try:
         #     ssp = functions.extractElements(input_url)
         # except Exception as e:

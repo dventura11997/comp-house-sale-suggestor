@@ -41,22 +41,22 @@ try:
         with st.spinner("Processing (this could take up to 30 seconds)..."):
             try:
                 soup, response_code = functions.getSoup(input_url)
-                st.write(f"API Response code: {response_code}")
+                #st.write(f"API Response code: {response_code}")
             except Exception as e:
                 st.error("Error getting html from original webpage")
             try:
                 price, beds, bath, parking, houseType = functions.findElements(soup)
-                st.write(f"Price: {price}, Beds: {beds}, Bath: {bath}, Parks: {parking}, House Type: {houseType}")
+                #st.write(f"Price: {price}, Beds: {beds}, Bath: {bath}, Parks: {parking}, House Type: {houseType}")
             except Exception as e:
                 st.error(f"Error extracting beds, bath, parking and house type from original webpage: {e}")
             try:
                 ssp = functions.extractElements(input_url)
-                st.write(f"Suburb, state and postcode text extracted from URL: {ssp}")
+                #st.write(f"Suburb, state and postcode text extracted from URL: {ssp}")
             except Exception as e:
                 st.error(f"Error extracting suburb state and postcode from input url: {e}")
             try:
                 final_url = functions.constructUrl(ssp, beds, bath, parking, houseType)
-                st.write(f"Final URL constructed: {final_url}")
+                #st.write(f"Final URL constructed: {final_url}")
             except Exception as e:
                 st.error("Error constructing URL for comparable sales")
             try:

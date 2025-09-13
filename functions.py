@@ -72,6 +72,7 @@ def findElements(soup):
         parking_container = soup.find('span', string='Parking').parent
         parking = parking_container.get_text().strip().split()[0]
     except Exception as e:
+        parking = "0"
         print("Error finding parking:", e)
     
     try:
@@ -89,33 +90,35 @@ def constructUrl(ssp, beds, bath, parking, houseType):
     base_url = "https://www.domain.com.au/sold-listings/"
     #ssp = extractElements(input_url)
     #price, beds, bath, parking, houseType = findElements(input_url)
+    if int(parking) > 5:
+        parking = '5-any'
     final_url = base_url + ssp + "/" + houseType + "/" + beds + "-bedrooms/?bathrooms=" + bath + "&excludepricewithheld=1&carspaces=" + parking
     print(final_url)
 
     return final_url
 
 
-# def compSold(final_url):
-#     soup = getSoup(final_url)
-#     prices = [p.get_text().strip() for p in soup.find_all('p', {'data-testid': 'listing-card-price'})]
-#     addresses = [span.get_text().strip() for span in soup.find_all('span', {'data-testid': 'address-line1'})]
-#     sold_info = [span.get_text().strip() for span in soup.find_all('span', class_='css-1nj9ymt')]
+def compSold(soup):
+    #soup = getSoup(final_url)
+    prices = [p.get_text().strip() for p in soup.find_all('p', {'data-testid': 'listing-card-price'})]
+    addresses = [span.get_text().strip() for span in soup.find_all('span', {'data-testid': 'address-line1'})]
+    sold_info = [span.get_text().strip() for span in soup.find_all('span', class_='css-1nj9ymt')]
 
-#     # Create dataframe (assuming equal lengths)
-#     df = pd.DataFrame({
-#     'price': prices,
-#     'address': addresses, 
-#     'sold_info': sold_info
-#     })
+    # Create dataframe (assuming equal lengths)
+    df = pd.DataFrame({
+    'price': prices,
+    'address': addresses, 
+    'sold_info': sold_info
+    })
 
-#     df['sale_methods'] = [re.split(r'\d', text)[0].strip() for text in df['sold_info']]
-#     df['sold_dates'] = [re.search(r'\d{1,2} \w+ \d{4}', text).group() if re.search(r'\d{1,2} \w+ \d{4}', text) else None for text in df['sold_info']]
+    df['sale_methods'] = [re.split(r'\d', text)[0].strip() for text in df['sold_info']]
+    df['sold_dates'] = [re.search(r'\d{1,2} \w+ \d{4}', text).group() if re.search(r'\d{1,2} \w+ \d{4}', text) else None for text in df['sold_info']]
 
-#     # Calc Avg Price
-#     price_avg = pd.to_numeric(df['price'].replace('[\$,]', '', regex=True), errors='coerce').mean()
-#     df.drop(['sold_info'], axis=1, inplace=True)
+    # Calc Avg Price
+    price_avg = pd.to_numeric(df['price'].replace('[\$,]', '', regex=True), errors='coerce').mean()
+    df.drop(['sold_info'], axis=1, inplace=True)
 
-#     return df, price_avg
+    return df, price_avg
 
 
 # def propHistory(input_url):

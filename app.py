@@ -58,10 +58,24 @@ try:
             st.write(f"Final URL constructed: {final_url}")
         except Exception as e:
             st.error("Error constructing URL for comparable sales")
+        try:
+            soup, response_code = functions.getSoup(final_url)
+            df_cs, price_avg = functions.compSold(soup)
+            if df_cs is None or len(df_cs) == 0:
+                st.info("No rows to show.")
+            else:
+                st.metric("Average Price", f"${price_avg:,.0f}")
+                st.dataframe(df_cs, use_container_width=True, hide_index=True)
+                st.link_button("Browse Sales on Domain", final_url)
+        except Exception as e:
+            st.error("Error getting comparative sales and ")
+
 except Exception as e:
     st.error(str(e))
     st.stop()
 
+#https://www.domain.com.au/sold-listings/ashwood-vic-3147/House/3-bedrooms/?bathrooms=1&excludepricewithheld=1&carspaces=7
+#https://www.domain.com.au/sold-listings/ashwood-vic-3147/house/3-bedrooms/?bathrooms=1&excludepricewithheld=1&carspaces=5-any
 #             if not final_url:
 #                 st.error("Error constructing URL for comparable sales")
 #             else:

@@ -38,33 +38,52 @@ input_url = st.text_input("Copy in the URL:")
 try:
     # Button to trigger the function once the URL is entered
     if st.button("View Comparable Sales and Property History"):
-        with st.spinner("Loading..."):
-            final_url = functions.constructUrl(input_url)
-            if not final_url:
-                st.error("Error constructing URL for comparable sales")
-            else:
-                st.write(f"Transformed URL for comparable sales: {final_url}")
-
-            try:
-                df_cs, price_avg = functions.compSold(final_url)
-            except Exception as e:
-                st.error(f"Error with compSold function: {e}")
-                st.stop()
-            #df_ph = functions.propHistory(input_url)
-
-            if df_cs is None or len(df_cs) == 0:
-                st.info("No rows to show.")
-            else:
-                st.metric("Average Price", f"${price_avg:,.0f}")
-                st.dataframe(df_cs, use_container_width=True, hide_index=True)
-                #st.link_button("Browse Sales on Domain", final_url)
-            #if df_ph is None or len(df_ph) == 0:
-                #st.info("No rows to show.")
-            #else:
-                #st.dataframe(df_ph, use_container_width=True, hide_index=True)
+        try:
+            soup, response_code = functions.getSoup(input_url)
+            st.write(f"API Response code: {response_code}")
+        except Exception as e:
+            st.error("Error getting html from original webpage")
+        # try:
+        #     beds, bath, parking, houseType = functions.findElements(input_url)
+        # except Exception as e:
+        #     st.error("Error extracting beds, bath, parking and house type from original webpage")
+        # try:
+        #     ssp = functions.extractElements(input_url)
+        # except Exception as e:
+        #     st.error("Error extracting suburb state and postcode from input url")
+        # try:
+        #     final_url = functions.constructUrl(input_url, ssp)
+        # except Exception as e:
+        #     st.error("Error constructing URL for comparable sales")
 except Exception as e:
     st.error(str(e))
     st.stop()
+
+#             if not final_url:
+#                 st.error("Error constructing URL for comparable sales")
+#             else:
+#                 st.write(f"Transformed URL for comparable sales: {final_url}")
+
+#             try:
+#                 df_cs, price_avg = functions.compSold(final_url)
+#             except Exception as e:
+#                 st.error(f"Error with compSold function: {e}")
+#                 st.stop()
+#             #df_ph = functions.propHistory(input_url)
+
+#             if df_cs is None or len(df_cs) == 0:
+#                 st.info("No rows to show.")
+#             else:
+#                 st.metric("Average Price", f"${price_avg:,.0f}")
+#                 st.dataframe(df_cs, use_container_width=True, hide_index=True)
+#                 #st.link_button("Browse Sales on Domain", final_url)
+#             #if df_ph is None or len(df_ph) == 0:
+#                 #st.info("No rows to show.")
+#             #else:
+#                 #st.dataframe(df_ph, use_container_width=True, hide_index=True)
+# except Exception as e:
+#     st.error(str(e))
+#     st.stop()
 
 # import streamlit as st
 # from scrapfly import ScrapeConfig, ScrapflyClient

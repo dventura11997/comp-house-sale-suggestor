@@ -34,159 +34,124 @@ def getSoup(input_url):
         response_code = response.status_code
         if response.status_code != 200:
             raise RuntimeError(f"HTTP {response.status_code} from target (likely bot protection).")
-        if "KPSDK" in response.content or "Access Denied" in response.content:
-            raise RuntimeError("Blocked by bot protection.")
+        # if "KPSDK" in response.content or "Access Denied" in response.content:
+        #     raise RuntimeError("Blocked by bot protection.")
         return soup, response_code
     except requests.exceptions.Timeout:
         print("Request timed out")
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
 
-def findElements(input_url):
-    soup = getSoup(input_url)
-    price = beds = bath = parking = houseType = None
+# def findElements(input_url, soup):
+#     #soup = getSoup(input_url)
+#     price = beds = bath = parking = houseType = None
 
-    try:
-        # price
-        price_element = soup.find('div', {'data-testid': 'listing-details__summary-title'}).find('span')
-        price = price_element.text
-    except Exception as e:
-        print("Error finding price:", e)
+#     try:
+#         # price
+#         price_element = soup.find('div', {'data-testid': 'listing-details__summary-title'}).find('span')
+#         price = price_element.text
+#     except Exception as e:
+#         print("Error finding price:", e)
     
-    try:
-        # beds
-        beds_container = soup.find('span', string='Beds').parent
-        beds = beds_container.get_text().strip().split()[0]
-    except Exception as e:
-        print("Error finding beds:", e)
+#     try:
+#         # beds
+#         beds_container = soup.find('span', string='Beds').parent
+#         beds = beds_container.get_text().strip().split()[0]
+#     except Exception as e:
+#         print("Error finding beds:", e)
 
-    try:
-        # bath
-        bath_container = soup.find('span', string='Bath').parent
-        bath = bath_container.get_text().strip().split()[0]
-    except Exception as e:
-        print("Error finding price element:", e)
+#     try:
+#         # bath
+#         bath_container = soup.find('span', string='Bath').parent
+#         bath = bath_container.get_text().strip().split()[0]
+#     except Exception as e:
+#         print("Error finding price element:", e)
     
-    try:
-        # bath
-        parking_container = soup.find('span', string='Parking').parent
-        parking = parking_container.get_text().strip().split()[0]
-    except Exception as e:
-        print("Error finding parking:", e)
+#     try:
+#         # bath
+#         parking_container = soup.find('span', string='Parking').parent
+#         parking = parking_container.get_text().strip().split()[0]
+#     except Exception as e:
+#         print("Error finding parking:", e)
     
-    try:
-        # House Type
-        houseType_element = soup.find('div', {'data-testid': 'listing-summary-property-type'}).find('span')
-        houseType = houseType_element.get_text().strip().split()[0]
-        if houseType == "Townhouse": houseType = "town-house"
-    except Exception as e:
-        print("Error finding house type:", e)
+#     try:
+#         # House Type
+#         houseType_element = soup.find('div', {'data-testid': 'listing-summary-property-type'}).find('span')
+#         houseType = houseType_element.get_text().strip().split()[0]
+#         if houseType == "Townhouse": houseType = "town-house"
+#     except Exception as e:
+#         print("Error finding house type:", e)
 
 
-    return price, beds, bath, parking, houseType
+#     return price, beds, bath, parking, houseType
 
-def constructUrl(input_url):
-    base_url = "https://www.domain.com.au/sold-listings/"
-    ssp = extractElements(input_url)
-    price, beds, bath, parking, houseType = findElements(input_url)
-    final_url = base_url + ssp + "/" + houseType + "/" + beds + "-bedrooms/?bathrooms=" + bath + "&excludepricewithheld=1&carspaces=" + parking
-    print(final_url)
+# def constructUrl(input_url, ssp, beds, bath, parking, houseType):
+#     base_url = "https://www.domain.com.au/sold-listings/"
+#     #ssp = extractElements(input_url)
+#     #price, beds, bath, parking, houseType = findElements(input_url)
+#     final_url = base_url + ssp + "/" + houseType + "/" + beds + "-bedrooms/?bathrooms=" + bath + "&excludepricewithheld=1&carspaces=" + parking
+#     print(final_url)
 
-    return final_url
-
-
-def compSold(final_url):
-    soup = getSoup(final_url)
-    prices = [p.get_text().strip() for p in soup.find_all('p', {'data-testid': 'listing-card-price'})]
-    addresses = [span.get_text().strip() for span in soup.find_all('span', {'data-testid': 'address-line1'})]
-    sold_info = [span.get_text().strip() for span in soup.find_all('span', class_='css-1nj9ymt')]
-
-    # Create dataframe (assuming equal lengths)
-    df = pd.DataFrame({
-    'price': prices,
-    'address': addresses, 
-    'sold_info': sold_info
-    })
-
-    df['sale_methods'] = [re.split(r'\d', text)[0].strip() for text in df['sold_info']]
-    df['sold_dates'] = [re.search(r'\d{1,2} \w+ \d{4}', text).group() if re.search(r'\d{1,2} \w+ \d{4}', text) else None for text in df['sold_info']]
-
-    # Calc Avg Price
-    price_avg = pd.to_numeric(df['price'].replace('[\$,]', '', regex=True), errors='coerce').mean()
-    df.drop(['sold_info'], axis=1, inplace=True)
-
-    return df, price_avg
+#     return final_url
 
 
-def propHistory(input_url):
-    ph_url = re.sub(r'-(\d+)$', '', input_url)           
-    ph_url = ph_url.replace(".com.au/", ".com.au/property-profile/")
+# def compSold(final_url):
+#     soup = getSoup(final_url)
+#     prices = [p.get_text().strip() for p in soup.find_all('p', {'data-testid': 'listing-card-price'})]
+#     addresses = [span.get_text().strip() for span in soup.find_all('span', {'data-testid': 'address-line1'})]
+#     sold_info = [span.get_text().strip() for span in soup.find_all('span', class_='css-1nj9ymt')]
 
-    soup = getSoup(ph_url)
-    
-    items = []
-    list_element = soup.find('ul', {'class': 'css-m3i618'})
+#     # Create dataframe (assuming equal lengths)
+#     df = pd.DataFrame({
+#     'price': prices,
+#     'address': addresses, 
+#     'sold_info': sold_info
+#     })
 
-    if list_element:
-        for li in list_element.find_all("li", {"class": "css-16ezjtx"}):
-            try:
-                category = li.find('div', {'data-testid': 'fe-co-property-timeline-card-category'}).get_text(strip=True)
-                price = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).get_text(strip=True)
-                period = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).find_next('span').get_text(strip=True)
-                month = li.find('div', {'class': 'css-vajoca'}).get_text(strip=True).upper()
-                year = li.find('div', {'class': 'css-1qi20sy'}).get_text(strip=True)
+#     df['sale_methods'] = [re.split(r'\d', text)[0].strip() for text in df['sold_info']]
+#     df['sold_dates'] = [re.search(r'\d{1,2} \w+ \d{4}', text).group() if re.search(r'\d{1,2} \w+ \d{4}', text) else None for text in df['sold_info']]
 
-                items.append({
-                    "category": category,
-                    "price": price,
-                    "period": period,
-                    "month": month,
-                    "year": year
-                })
-            except Exception as e:
-                print(f"Error parsing item: {e}")
-        df = pd.DataFrame(items)
-    else:
-        return pd.DataFrame()
+#     # Calc Avg Price
+#     price_avg = pd.to_numeric(df['price'].replace('[\$,]', '', regex=True), errors='coerce').mean()
+#     df.drop(['sold_info'], axis=1, inplace=True)
 
-    return df
-    
+#     return df, price_avg
+
+
 # def propHistory(input_url):
-#     ph_url = re.sub(r'-(\d+)$', '', input_url)           # remove the trailing -digits
+#     ph_url = re.sub(r'-(\d+)$', '', input_url)           
 #     ph_url = ph_url.replace(".com.au/", ".com.au/property-profile/")
-#     print(ph_url)
 
-#     service = Service(ChromeDriverManager().install())
-#     browser = webdriver.Chrome(service=service)
-#     browser.get(ph_url)
-#     time.sleep(1)
-#     button = browser.find_element(By.XPATH, "//button[text()='View more results']")
-#     button.click()
-#     soup = BeautifulSoup(browser.page_source, "html.parser")
-#     time.sleep(4)
-#     browser.quit()
-
+#     soup = getSoup(ph_url)
+    
 #     items = []
 #     list_element = soup.find('ul', {'class': 'css-m3i618'})
 
-#     for li in list_element.find_all("li", {"class": "css-16ezjtx"}):
-#         category = li.find('div', {'data-testid': 'fe-co-property-timeline-card-category'}).get_text(strip=True)
-#         price = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).get_text(strip=True)
-#         period = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).find_next('span').get_text(strip=True)
-#         month = li.find('div', {'class': 'css-vajoca'}).get_text(strip=True).upper()
-#         year = li.find('div', {'class': 'css-1qi20sy'}).get_text(strip=True)
+#     if list_element:
+#         for li in list_element.find_all("li", {"class": "css-16ezjtx"}):
+#             try:
+#                 category = li.find('div', {'data-testid': 'fe-co-property-timeline-card-category'}).get_text(strip=True)
+#                 price = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).get_text(strip=True)
+#                 period = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).find_next('span').get_text(strip=True)
+#                 month = li.find('div', {'class': 'css-vajoca'}).get_text(strip=True).upper()
+#                 year = li.find('div', {'class': 'css-1qi20sy'}).get_text(strip=True)
 
-#         items.append({
-#             "category": category,
-#             "price": price,
-#             "period": period,
-#             "month": month,
-#             "year": year
-#         })
-
-#     df = pd.DataFrame(items)
+#                 items.append({
+#                     "category": category,
+#                     "price": price,
+#                     "period": period,
+#                     "month": month,
+#                     "year": year
+#                 })
+#             except Exception as e:
+#                 print(f"Error parsing item: {e}")
+#         df = pd.DataFrame(items)
+#     else:
+#         return pd.DataFrame()
 
 #     return df
+    
+
 
 
 

@@ -103,16 +103,20 @@ def compSold(soup):
     prices = [p.get_text().strip() for p in soup.find_all('p', {'data-testid': 'listing-card-price'})]
     addresses = [span.get_text().strip() for span in soup.find_all('span', {'data-testid': 'address-line1'})]
     sold_info = [span.get_text().strip() for span in soup.find_all('span', class_='css-1nj9ymt')]
+    
+    comp_data = []
+    for price, address, sold in zip(prices, addresses, sold_info):  
+        sale_method = re.split(r'\d', sold)[0].strip()
+        sold_date = re.search(r'\d{1,2} \w+ \d{4}', sold)
+        comp_data.append({
+            "price": price,
+            "address": address,
+            "sold_info": sold,
+            "sale_method": sale_method,
+            "sold_date": sold_date.group() if sold_date else None
+        })
 
-    # Create dataframe (assuming equal lengths)
-    df = pd.DataFrame({
-    'price': prices,
-    'address': addresses, 
-    'sold_info': sold_info
-    })
-
-    df['sale_methods'] = [re.split(r'\d', text)[0].strip() for text in df['sold_info']]
-    df['sold_dates'] = [re.search(r'\d{1,2} \w+ \d{4}', text).group() if re.search(r'\d{1,2} \w+ \d{4}', text) else None for text in df['sold_info']]
+    df = pd.DataFrame(comp_data)
 
     # Calc Avg Price
     price_avg = pd.to_numeric(df['price'].replace('[\$,]', '', regex=True), errors='coerce').mean()

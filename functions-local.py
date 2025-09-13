@@ -1,13 +1,19 @@
 import re
 from bs4 import BeautifulSoup
 import requests
+import webbrowser
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 import time
-
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from webdriver_manager.firefox import GeckoDriverManager
 # https://discuss.streamlit.io/t/selenium-web-scraping-on-streamlit-cloud/21820/6
 
 #url = "https://www.domain.com.au/13-700-riversdale-road-camberwell-vic-3124-2020196506"
@@ -135,97 +141,76 @@ def propHistory(input_url):
     ph_url = ph_url.replace(".com.au/", ".com.au/property-profile/")
     print(ph_url)
 
+    firefoxOptions = Options()
+    firefoxOptions.add_argument("--headless")
+    service = Service(GeckoDriverManager().install())
+    driver = webdriver.Firefox(
+        options=firefoxOptions,
+        service=service,
+    )
+    driver.get(ph_url)
+    time.sleep(1)
+    button = driver.find_element(By.XPATH, "//button[text()='View more results']")
+    button.click()
+    soup = BeautifulSoup(driver.page_source, "html.parser")
+    time.sleep(4)
+    driver.quit()
 
-    # Chromium options for Streamlit Cloud
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--disable-features=VizDisplayCompositor")
+    items = []
+    list_element = soup.find('ul', {'class': 'css-m3i618'})
 
-    try:
+    for li in list_element.find_all("li", {"class": "css-16ezjtx"}):
+        category = li.find('div', {'data-testid': 'fe-co-property-timeline-card-category'}).get_text(strip=True)
+        price = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).get_text(strip=True)
+        period = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).find_next('span').get_text(strip=True)
+        month = li.find('div', {'class': 'css-vajoca'}).get_text(strip=True).upper()
+        year = li.find('div', {'class': 'css-1qi20sy'}).get_text(strip=True)
 
-        driver = webdriver.Chrome(options=chrome_options)
-        driver.get(ph_url)
-        time.sleep(1)
+        items.append({
+            "category": category,
+            "price": price,
+            "period": period,
+            "month": month,
+            "year": year
+        })
 
-        try:
-            button = driver.find_element(By.XPATH, "//button[text()='View more results']")
-            button.click()
-            time.sleep(2)
-        except Exception as e:
-            print(f"Button click failed: {e}")
-        
-        soup = BeautifulSoup(driver.page_source, "html.parser")
-        driver.quit()
+    df = pd.DataFrame(items)
+    #print(df)
 
-        items = []
-        list_element = soup.find('ul', {'class': 'css-m3i618'})
+    return df
+def propHistory(input_url):
+    ph_url = re.sub(r'-(\d+)$', '', input_url)           # remove the trailing -digits
+    ph_url = ph_url.replace(".com.au/", ".com.au/property-profile/")
+    print(ph_url)
 
-        if list_element:
-            for li in list_element.find_all("li", {"class": "css-16ezjtx"}):
-                try:
-                    category = li.find('div', {'data-testid': 'fe-co-property-timeline-card-category'}).get_text(strip=True)
-                    price = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).get_text(strip=True)
-                    period = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).find_next('span').get_text(strip=True)
-                    month = li.find('div', {'class': 'css-vajoca'}).get_text(strip=True).upper()
-                    year = li.find('div', {'class': 'css-1qi20sy'}).get_text(strip=True)
+    service = Service(ChromeDriverManager().install())
+    browser = webdriver.Chrome(service=service)
+    browser.get(ph_url)
+    time.sleep(1)
+    button = browser.find_element(By.XPATH, "//button[text()='View more results']")
+    button.click()
+    soup = BeautifulSoup(browser.page_source, "html.parser")
+    time.sleep(4)
+    browser.quit()
 
-                    items.append({
-                        "category": category,
-                        "price": price,
-                        "period": period,
-                        "month": month,
-                        "year": year
-                    })
-                except Exception as e:
-                    print(f"Error parsing item: {e}")
-        df = pd.DataFrame(items)
-        return df
-    except Exception as e:
-        print(f"Chromium driver error: {e}")
-        return pd.DataFrame()
+    items = []
+    list_element = soup.find('ul', {'class': 'css-m3i618'})
 
-# def propHistory(input_url):
-#     ph_url = re.sub(r'-(\d+)$', '', input_url)           # remove the trailing -digits
-#     ph_url = ph_url.replace(".com.au/", ".com.au/property-profile/")
-#     print(ph_url)
+    for li in list_element.find_all("li", {"class": "css-16ezjtx"}):
+        category = li.find('div', {'data-testid': 'fe-co-property-timeline-card-category'}).get_text(strip=True)
+        price = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).get_text(strip=True)
+        period = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).find_next('span').get_text(strip=True)
+        month = li.find('div', {'class': 'css-vajoca'}).get_text(strip=True).upper()
+        year = li.find('div', {'class': 'css-1qi20sy'}).get_text(strip=True)
 
-#     service = Service(ChromeDriverManager().install())
-#     browser = webdriver.Chrome(service=service)
-#     browser.get(ph_url)
-#     time.sleep(1)
-#     button = browser.find_element(By.XPATH, "//button[text()='View more results']")
-#     button.click()
-#     soup = BeautifulSoup(browser.page_source, "html.parser")
-#     time.sleep(4)
-#     browser.quit()
+        items.append({
+            "category": category,
+            "price": price,
+            "period": period,
+            "month": month,
+            "year": year
+        })
 
-#     items = []
-#     list_element = soup.find('ul', {'class': 'css-m3i618'})
+    df = pd.DataFrame(items)
 
-#     for li in list_element.find_all("li", {"class": "css-16ezjtx"}):
-#         category = li.find('div', {'data-testid': 'fe-co-property-timeline-card-category'}).get_text(strip=True)
-#         price = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).get_text(strip=True)
-#         period = li.find('span', {'data-testid': 'fe-co-property-timeline-card-heading'}).find_next('span').get_text(strip=True)
-#         month = li.find('div', {'class': 'css-vajoca'}).get_text(strip=True).upper()
-#         year = li.find('div', {'class': 'css-1qi20sy'}).get_text(strip=True)
-
-#         items.append({
-#             "category": category,
-#             "price": price,
-#             "period": period,
-#             "month": month,
-#             "year": year
-#         })
-
-#     df = pd.DataFrame(items)
-
-#     return df
-
-
-
-
-
-
+    return df

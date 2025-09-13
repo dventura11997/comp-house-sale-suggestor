@@ -22,13 +22,6 @@ def extractElements(input_url):
 
 def getSoup(input_url):
     try:
-    #     headers = {
-    #     "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    #                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    #                    "Chrome/120.0.0.0 Safari/537.36"),
-    #     "Accept-Language": "en-AU,en;q=0.9",
-    # }
-    #     response = requests.get(input_url, headers=headers, timeout=10)
         scrapfly_client = ScrapflyClient("scp-live-bb61fd3f185c4c6dba068babfcee3079")
         response = scrapfly_client.scrape(ScrapeConfig(
             input_url,
@@ -40,7 +33,7 @@ def getSoup(input_url):
         soup = BeautifulSoup(response.content, 'html.parser')
         if response.status_code != 200:
             raise RuntimeError(f"HTTP {response.status_code} from target (likely bot protection).")
-        if "KPSDK" in response.text or "Access Denied" in response.text:
+        if "KPSDK" in response.content or "Access Denied" in response.content:
             raise RuntimeError("Blocked by bot protection.")
         return soup
     except requests.exceptions.Timeout:

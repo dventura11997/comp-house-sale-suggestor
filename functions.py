@@ -12,8 +12,8 @@ def get_url(input_url):
 
 def extractElements(input_url):
     try:
-        match = re.search(r'([a-z]+)-(vic|nsw|qld|wa|sa|tas|nt|act)-(\d{4})', input_url)
-        ssp = match.group(0)
+        match = re.search(r'(?:street|road|avenue|drive|lane|court|place|way|close|crescent)-([a-z]+(?:-[a-z]+)*)-(vic|nsw|qld|wa|sa|tas|nt|act)-(\d{4})', input_url)
+        ssp = match.group(1) + '-' + match.group(2) + '-' + match.group(3) if match else None
         
         return ssp if ssp else None
     except Exception as e:

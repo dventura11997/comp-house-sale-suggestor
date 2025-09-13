@@ -42,48 +42,48 @@ def getSoup(input_url):
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
 
-# def findElements(input_url, soup):
-#     #soup = getSoup(input_url)
-#     price = beds = bath = parking = houseType = None
+def findElements(soup):
+    #soup = getSoup(input_url)
+    price = beds = bath = parking = houseType = None
 
-#     try:
-#         # price
-#         price_element = soup.find('div', {'data-testid': 'listing-details__summary-title'}).find('span')
-#         price = price_element.text
-#     except Exception as e:
-#         print("Error finding price:", e)
+    try:
+        # price
+        price_element = soup.find('div', {'data-testid': 'listing-details__summary-title'}).find('span')
+        price = price_element.text
+    except Exception as e:
+        print("Error finding price:", e)
     
-#     try:
-#         # beds
-#         beds_container = soup.find('span', string='Beds').parent
-#         beds = beds_container.get_text().strip().split()[0]
-#     except Exception as e:
-#         print("Error finding beds:", e)
+    try:
+        # beds
+        beds_container = soup.find('span', string='Beds').parent
+        beds = beds_container.get_text().strip().split()[0]
+    except Exception as e:
+        print("Error finding beds:", e)
 
-#     try:
-#         # bath
-#         bath_container = soup.find('span', string='Bath').parent
-#         bath = bath_container.get_text().strip().split()[0]
-#     except Exception as e:
-#         print("Error finding price element:", e)
+    try:
+        # bath
+        bath_container = soup.find('span', string='Bath').parent
+        bath = bath_container.get_text().strip().split()[0]
+    except Exception as e:
+        print("Error finding price element:", e)
     
-#     try:
-#         # bath
-#         parking_container = soup.find('span', string='Parking').parent
-#         parking = parking_container.get_text().strip().split()[0]
-#     except Exception as e:
-#         print("Error finding parking:", e)
+    try:
+        # bath
+        parking_container = soup.find('span', string='Parking').parent
+        parking = parking_container.get_text().strip().split()[0]
+    except Exception as e:
+        print("Error finding parking:", e)
     
-#     try:
-#         # House Type
-#         houseType_element = soup.find('div', {'data-testid': 'listing-summary-property-type'}).find('span')
-#         houseType = houseType_element.get_text().strip().split()[0]
-#         if houseType == "Townhouse": houseType = "town-house"
-#     except Exception as e:
-#         print("Error finding house type:", e)
+    try:
+        # House Type
+        houseType_element = soup.find('div', {'data-testid': 'listing-summary-property-type'}).find('span')
+        houseType = houseType_element.get_text().strip().split()[0]
+        if houseType == "Townhouse": houseType = "town-house"
+    except Exception as e:
+        print("Error finding house type:", e)
 
 
-#     return price, beds, bath, parking, houseType
+    return price, beds, bath, parking, houseType
 
 # def constructUrl(input_url, ssp, beds, bath, parking, houseType):
 #     base_url = "https://www.domain.com.au/sold-listings/"

@@ -43,10 +43,11 @@ try:
             st.write(f"API Response code: {response_code}")
         except Exception as e:
             st.error("Error getting html from original webpage")
-        # try:
-        #     beds, bath, parking, houseType = functions.findElements(input_url)
-        # except Exception as e:
-        #     st.error("Error extracting beds, bath, parking and house type from original webpage")
+        try:
+            beds, bath, parking, houseType = functions.findElements(soup)
+            st.write(f"Beds: {beds}, Bath: {bath}, Parks: {parking}, House Type: {houseType}")
+        except Exception as e:
+            st.error("Error extracting beds, bath, parking and house type from original webpage")
         # try:
         #     ssp = functions.extractElements(input_url)
         # except Exception as e:

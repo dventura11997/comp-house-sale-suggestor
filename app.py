@@ -38,6 +38,15 @@ input_url = st.text_input("Copy in the URL:")
 try:
     # Button to trigger the function once the URL is entered
     if st.button("View Comparable Sales and Property History"):
+        if "domain" not in input_url:
+            st.error("Must be a Domain URL")
+            st.stop()  # stops execution of the rest
+        if "property-profile" in input_url:
+            st.error("Wrong type of Domain URL, must be a listing not property profile")
+            st.stop()  # stops execution of the rest
+        if "building-profile" in input_url:
+            st.error("Wrong type of Domain URL, must be a listing not building profile")
+            st.stop()  # stops execution of the rest
         with st.spinner("Processing (this could take up to 30 seconds)..."):
             try:
                 soup, response_code = functions.getSoup(input_url)
